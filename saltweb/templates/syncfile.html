@@ -11,8 +11,15 @@
 <option>请选择文件</option>
 {% for file in files %}<option>{{ file }}</option>{% endfor %}
 </select> 
-<input type="text" class="input-small" value="*" name="saltid">   目标文件
-<input type="text" class="input-max" name='path' placeholder="/tmp/tmp.txt">
+匹配主机:<input type="text" class="input-small" value="*" name="saltid">   
+            类型:<select name="type" class="input-small">
+                <option>glob</option>
+                <option>nodegroup</option>
+                <option>range</option>
+                <option>grain</option>
+                <option>pillar</option>
+            </select>
+目标文件<input type="text" class="input-max" name='path' placeholder="/tmp/tmp.txt">
 <button type="submit" class="btn" id="execute">执行</button>
 </form>
 {% if msg %}<font color='red'>{{ msg }}</font><br>{% endif %}

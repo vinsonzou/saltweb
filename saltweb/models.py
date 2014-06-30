@@ -152,7 +152,7 @@ class Minionslog(Model):
 class Alarm(Model):
     hostid = CharField(max_length=1000)
     msg = CharField(max_length=500)
-    to = CharField(max_length=50)
+    to = CharField(max_length=500)
     nowtime = DateTimeField(auto_now_add=True)
     def __unicode__(self):
         return self.hostid
@@ -160,6 +160,13 @@ class Alarm(Model):
 class Group(Model):
     name = CharField(max_length=50)
     hosts = CharField(max_length=500)
+    contact = CharField(max_length=500)
+    nowtime = DateTimeField(auto_now_add=True)
+    def __unicode__(self):
+        return self.name
+
+class Contacts(Model):
+    name = CharField(max_length=50)
     contact = CharField(max_length=500)
     nowtime = DateTimeField(auto_now_add=True)
     def __unicode__(self):

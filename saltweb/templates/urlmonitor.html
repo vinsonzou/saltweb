@@ -11,7 +11,11 @@
 IP地址:<input type="text" name='ip' class="input-small" placeholder="输入ip地址">
 端口号:<input type="text" name='port' class="input-small"placeholder="输入端口号">
 URL:<input type="text" name='urlname' class="span3" placeholder="输入url">
-负责人:<input type="text" name='contact' class="span2" placeholder="输入负责人邮箱">
+联系人组:<select name="contact" class="input-small">
+{% for contact in contacts %}
+<option>{{ contact }}</option>
+{% endfor %}
+</select>
 <button type="submit" name='add' class="btn">添加监控</button><br>
 {% if msg %}<font color='red'>{{ msg }}</font>{% endif %}
 <h3>页面监控</h3>
@@ -20,7 +24,7 @@ URL:<input type="text" name='urlname' class="span3" placeholder="输入url">
 <button type="submit" name='search' class="btn">搜索</button>
 </form>
 <table class="table">
-<th>工程名</th><th>域名</th><th>IP地址</th><th>端口</th><th>Url地址</th><th>负责人</th><th>最后监控时间</th><th>监控结果</th><th>报警状态</th><th><a href="?updateall=1">全部刷新</a> <a href="?allclosemail=1">全部关闭</a> <a href="?allclosemail=0">全部开启</a> </th>
+<th>工程名</th><th>域名</th><th>IP地址</th><th>端口</th><th>Url地址</th><th>联系人组</th><th>最后监控时间</th><th>监控结果</th><th>报警状态</th><th><a href="?updateall=1">全部刷新</a> <a href="?allclosemail=1">全部关闭</a> <a href="?allclosemail=0">全部开启</a> </th>
 {% for ret in rets %}
 {% ifequal ret.status '200' %}<tr class="alert-success">{% else %}<tr class="alert-danger">{% endifequal %}
     <td>{{ret.proname}}</td>

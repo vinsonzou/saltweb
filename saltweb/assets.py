@@ -64,7 +64,8 @@ for saltid,grain in grains.items():
             Hosts.objects.filter(saltid=saltid).update(ip=ip,cpu=cpu,cpunum=cpunum,mem=mem,hostname=hostname,os=os,nowtime=nowtime)
             Chagelog.objects.create(saltid=saltid,ip=ip,chage=str(chage))
             subject=u'Hardware chage ' + saltid
-            send_mail(subject,str(chage),comm.from_mail,comm.samail_list)
+            tolist = Contacts.objects.filter(name='sa')[0].contact.split(',')
+            send_mail(subject,str(chage),comm.from_mail,tolist)
     #else:
     #    ips = [row['ip'] for row in Hosts.objects.values('ip')]
     #    if ip in ips:
@@ -93,4 +94,5 @@ for saltid,vmret in vmrets.items():
                 ip = Hosts.objects.get(saltid=saltid).ip
                 Chagelog.objects.create(saltid=saltid,ip=ip,chage=str(chage))
                 subject=u'Hardware chage ' + saltid
-                send_mail(subject,str(chage),comm.from_mail,comm.samail_list)
+                tolist = Contacts.objects.filter(name='sa')[0].contact.split(',')
+                send_mail(subject,str(chage),comm.from_mail,tolist)

@@ -56,7 +56,7 @@ def monitor(request):
     master_ip = masterip
     master_ips = os.popen("ip a|grep 'inet '|grep -v 127.0.0.1").read()
     if master_ip not in master_ips: master_ip = ''
-    masterstatus = Mastermonitor.objects.get(id=1).status
+    masterstatus = Mastermonitor.objects.filter(saltid='saltwebmaster')[0].status
     up = Hosts.objects.filter(saltstatus='True').count()
     down = Hosts.objects.filter(saltstatus='False').count()
     total = Hosts.objects.count() 
@@ -255,6 +255,7 @@ def minions(request):
 def urlmonitor(request):
     user = request.user
     msgnum = Msg.objects.filter(isread=0,msgto=user).count()
+    contacts = [row['name'] for row in Contacts.objects.values('name')]
     if request.method == 'POST':
         if request.POST.has_key("add"):
             proname = request.POST.get('proname','')
@@ -320,8 +321,8 @@ def saltcmd(request):
         fun = request.POST.get('fun','')
         cmd = request.POST.get('cmd','')
         type = request.POST.get('type','')
-        #minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)['minions']
-        minions = os.listdir('/etc/salt/pki/master/minions')
+        minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)['minions']
+        #minions = os.listdir('/etc/salt/pki/master/minions')
         dangercmds = [i for i in dangercmdlist if i in cmd]
         if not dangercmds:
             ret1 = c.cmd(saltid,fun,[cmd],expr_form=type,timeout=99)
@@ -455,12 +456,13 @@ def syncfile(request):
         local = upload_dir + filename
         remote = request.POST.get('path','')
         saltid = request.POST.get('saltid','')
-        cmd = 'wget %s%s -O %s >/dev/null 2>&1 && echo "saltexec_ok !!!"' % (download_url,filename,remote)
+        type = request.POST.get('type','')
+        cmd = 'wget %s%s -O %s >/dev/null 2>&1 && echo " sync_ok !!!"' % (download_url,filename,remote)
         c = salt.client.LocalClient()
-        rets = c.cmd(saltid,'cmd.run',[cmd],timeout=5)
-        #minions = c.run_job(saltid,'cmd.run',['echo'])['minions']
-        minions = os.listdir('/etc/salt/pki/master/minions')
-        retok = [ret[0] for ret in rets.items() if "saltexec_ok" in ret[1]]
+        rets = c.cmd(saltid,'cmd.run',[cmd],expr_form=type,timeout=5)
+        minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)['minions']
+        #minions = os.listdir('/etc/salt/pki/master/minions')
+        retok = [ret[0] for ret in rets.items() if "sync_ok" in ret[1]]
         execerr = list(set(minions).difference(set(retok)))
         total = len(minions)
         errnum = len(execerr)
@@ -482,6 +484,7 @@ def sysuser(request):
     elif request.method == 'POST':
         if request.POST.has_key("adduser"):
             saltid = request.POST.get('saltid','')
+            type = request.POST.get('type','')
             username = request.POST.get('username','')
             passwd = request.POST.get('passwd','')
             passwd1 = request.POST.get('passwd1','')
@@ -491,9 +494,10 @@ def sysuser(request):
                 if usertype == '2':
                     cmd = '%s &&chattr -i /etc/sudoers && echo "%s  ALL=(ALL)  NOPASSWD: ALL">>/etc/sudoers && chattr +i /etc/sudoers' % (cmd,username)
                 c = salt.client.LocalClient()
-                #minions = c.run_job(saltid,'cmd.run',['echo'])['minions']
-                minions = os.listdir('/etc/salt/pki/master/minions')
-                ret1 = c.cmd(saltid,'cmd.run',[cmd],timeout=5)
+                minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)['minions']
+                print minions
+                #minions = os.listdir('/etc/salt/pki/master/minions')
+                ret1 = c.cmd(saltid,'cmd.run',[cmd],expr_form=type,timeout=5)
                 retok = [ret[0] for ret in ret1.items() if "successfully" in ret[1]]
                 execerr = list(set(minions).difference(set(retok)))
                 total = len(minions)
@@ -509,12 +513,13 @@ def sysuser(request):
                 msg = "两次密码不一致"
         if request.POST.has_key("deluser"):
             saltid = request.POST.get('saltid','')
+            type = request.POST.get('type','')
             username = request.POST.get('username','') 
             c = salt.client.LocalClient()
-            #minions = c.run_job(saltid,'cmd.run',['echo'])['minions'] 
-            minions = os.listdir('/etc/salt/pki/master/minions')
+            minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)['minions'] 
+            #minions = os.listdir('/etc/salt/pki/master/minions')
             cmd = "userdel %s >/dev/null 2>&1 ;echo 'successfully'" % username
-            ret1 = c.cmd(saltid,'cmd.run',[cmd],timeout=5)      
+            ret1 = c.cmd(saltid,'cmd.run',[cmd],expr_form=type,timeout=5)      
             retok = [ret[0] for ret in ret1.items() if "successfully" in ret[1]]
             execerr = list(set(minions).difference(set(retok)))
             total = len(minions)
@@ -526,15 +531,16 @@ def sysuser(request):
             Log.objects.create(user=str(user),ip='-',saltid=saltid,logtype='deluser',cmd=cmd,execerr=execerr)
         if request.POST.has_key("chpasswd"):
             saltid = request.POST.get('saltid','')
+            type = request.POST.get('type','')
             username = request.POST.get('username','')
             passwd = request.POST.get('passwd','')
             passwd1 = request.POST.get('passwd1','')
             cmd = "echo %s|passwd --stdin %s" % (passwd,username)
             if passwd == passwd1:
                 c = salt.client.LocalClient()
-                #minions = c.run_job(saltid,'cmd.run',['echo'])['minions']
-                minions = os.listdir('/etc/salt/pki/master/minions')
-                ret1 = c.cmd(saltid,'cmd.run',[cmd],timeout=5)
+                minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)['minions']
+                #minions = os.listdir('/etc/salt/pki/master/minions')
+                ret1 = c.cmd(saltid,'cmd.run',[cmd],expr_form=type,timeout=5)
                 retok = [ret[0] for ret in ret1.items() if "successfully" in ret[1]]
                 execerr = list(set(minions).difference(set(retok)))
                 total = len(minions)
@@ -561,15 +567,16 @@ def install(request):
     elif request.method == 'POST':
         if request.POST.has_key("install"):
             saltid = request.POST.get('saltid','')
+            type = request.POST.get('type','')
             software = request.POST.get('software','')
             cmd = "wget %s/install/%s -O /tmp/%s >/dev/null 2>&1 && cd /tmp && sh %s >/dev/null 2>&1 && echo 'Install Success !!!'" % (download_url,software,software,software)
             def execcmd():
                 c = salt.client.LocalClient()
                 Deploylog.objects.create(name=software,saltid=saltid)
                 id = Deploylog.objects.order_by('-id')[0].id
-                rets = c.cmd(saltid,'cmd.run',[cmd],timeout=999)
-                #minions = c.run_job(saltid,'cmd.run',['echo'])['minions']
-                minions = os.listdir('/etc/salt/pki/master/minions')
+                rets = c.cmd(saltid,'cmd.run',[cmd],expr_form=type,timeout=999)
+                minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)['minions']
+                #minions = os.listdir('/etc/salt/pki/master/minions')
                 retok = [ret[0] for ret in rets.items() if "Install Success" in ret[1]]
                 execerr = list(set(minions).difference(set(retok)))
                 total = len(minions)
@@ -696,7 +703,7 @@ def msg(request):
     return render_to_response('msg.html',locals())
 
 @login_required
-def groups(request):
+def hostgroup(request):
     user = request.user
     msgnum = Msg.objects.filter(isread=0,msgto=user).count()
     name = request.GET.get('name',)
@@ -707,7 +714,7 @@ def groups(request):
     if delete:
         os.popen('sed -i "/%s:.*/d" %s' % (name,groupsconf)) 
         Group.objects.filter(name=name).delete()
-        return HttpResponseRedirect('/salt/groups/')
+        return HttpResponseRedirect('/salt/hostgroup/')
     if edit:
         if request.method == 'POST':
             name = request.POST['name']
@@ -716,10 +723,10 @@ def groups(request):
             os.popen('sed -i "s/%s:.*/%s: %s/" %s' % (name,name,hosts,groupsconf))
             nowtime = time.strftime("%Y-%m-%d %H:%M:%S")
             Group.objects.filter(name=name).update(hosts=hosts,contact=contact,nowtime=nowtime)        
-            return HttpResponseRedirect('/salt/groups/')
+            return HttpResponseRedirect('/salt/hostgroup/')
         else:
             ret = Group.objects.get(name=name)
-            return render_to_response("updategroups.html",locals())
+            return render_to_response("updatehostgroup.html",locals())
     if request.method == 'POST':
         groupname = request.POST['groupname']
         hosts = request.POST['hosts']
@@ -738,4 +745,42 @@ def groups(request):
             else:
                 msg = "组名不存在"
     rets = Group.objects.all()
-    return render_to_response('groups.html',locals())
+    return render_to_response('hostgroup.html',locals())
+
+@login_required
+def contactgroup(request):
+    user = request.user
+    msgnum = Msg.objects.filter(isread=0,msgto=user).count()
+    name = request.GET.get('name',)
+    contact = request.GET.get('contact',)
+    edit = request.GET.get('edit',)
+    delete = request.GET.get('delete',)
+    if delete:
+        Contacts.objects.filter(name=name).delete()
+        return HttpResponseRedirect('/salt/contactgroup/')
+    if edit:
+        if request.method == 'POST':
+            name = request.POST['name']
+            contact = request.POST['contact']
+            nowtime = time.strftime("%Y-%m-%d %H:%M:%S")
+            Contacts.objects.filter(name=name).update(contact=contact,nowtime=nowtime)        
+            return HttpResponseRedirect('/salt/contactgroup/')
+        else:
+            ret = Contacts.objects.get(name=name)
+            return render_to_response("updatecontactgroup.html",locals())
+    if request.method == 'POST':
+        groupname = request.POST['groupname']
+        contact = request.POST['contact']
+        if request.POST.has_key("add"):
+            if not Contacts.objects.filter(name=groupname):
+                Contacts.objects.create(name=groupname,contact=contact)
+            else:
+                msg = "组名已经存在"
+        if request.POST.has_key("modf"):
+            if Contacts.objects.filter(name=groupname):
+                nowtime = time.strftime("%Y-%m-%d %H:%M:%S")
+                Contacts.objects.filter(name=groupname).update(contact=contact,nowtime=nowtime)
+            else:
+                msg = "组名不存在"
+    rets = Contacts.objects.all()
+    return render_to_response('contactgroup.html',locals())

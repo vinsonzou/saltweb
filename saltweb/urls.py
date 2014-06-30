@@ -40,5 +40,6 @@ urlpatterns = patterns('',
     url(r'^salt/optlog/$', optlog ,name='optlog'),
     url(r'^salt/todo/$', todo,name='todo'),
     url(r'^salt/msg/$', msg,name='msg'),
-    url(r'^salt/groups/$', groups,name='groups'),
+    url(r'^salt/hostgroup/$', hostgroup,name='hostgroup'),
+    url(r'^salt/contactgroup/$', contactgroup,name='contactgroup'),
 )

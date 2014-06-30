@@ -39,8 +39,13 @@ for ret in rets:
 for i in Url.objects.filter(sendmail=1,closemail=0):
     errproname = i.proname
     #for err in errs:
-    maillist = Url.objects.filter(proname=errproname)[0].contact.split(',')
-    maillist.extend(comm.samail_list)
+    #maillist = Url.objects.filter(proname=errproname)[0].contact.split(',')
+    #maillist.extend(comm.samail_list)
+    contact = Url.objects.filter(proname=errproname)[0].contact
+    maillist = Contacts.objects.filter(name=contact)[0].contact.split(',')
+    print maillist
+    maillist.extend(Contacts.objects.filter(name='sa')[0].contact.split(','))
+    print maillist
     status = Url.objects.filter(proname=errproname)[0].status
     msg = u'CRITICAL: url monitor fail %s status %s' % (errproname,status)
     send_mail(msg,"",comm.from_mail,maillist)

@@ -4,7 +4,7 @@
 ####################
 #全局常量
 from_mail = 'saltweb@hhr.com'
-samail_list = ['hhr66@qq.com',]
+#samail_list = ['hhr66@qq.com',]
 interval = 7200 #报警间隔
 masterip = '172.16.1.237'
 network_list = ('172.16','192.168','10.0')
@@ -118,7 +118,7 @@ def cmdminion(host):
     cmd += "num=$?;"
     cmd += '[ $num -ne 0 ] && [ $Sys_ver -eq 5 ] && sudo rpm -Uvh http://mirrors.sohu.com/fedora-epel/5/x86_64/epel-release-5-4.noarch.rpm >/dev/null 2>&1;'
     cmd += '[ $num -ne 0 ] && [ $Sys_ver -eq 6 ] && sudo rpm -Uvh http://mirrors.sohu.com/fedora-epel/6/x86_64/epel-release-6-8.noarch.rpm >/dev/null 2>&1;'
-    cmd += 'rpm -q salt-minion >/dev/null || sudo yum -y install salt-minion >/dev/null 2>&1'
+    cmd += 'rpm -q salt-minion >/dev/null || sudo yum -y install salt-minion wget dmidecode >/dev/null 2>&1'
     cmd += '&& sudo sed -i "$ a\master: %s" /etc/salt/minion ' % masterip
     cmd += '&& sudo sed -i "$ a\id: %s_`hostname`" /etc/salt/minion ' % host
     cmd += '&& sudo rm -f /etc/salt/pki/minion/minion_master.pub'

@@ -9,6 +9,13 @@
     <div class='span10'>
             <form class="form-inline" id="form-execute" action="/salt/install/" method="post" style="margin-bottom:0;">
 		匹配主机<input type="text" class="input-small" value="*" name="saltid">
+            类型:<select name="type" class="input-small">
+                <option>glob</option>
+                <option>nodegroup</option>
+                <option>range</option>
+                <option>grain</option>
+                <option>pillar</option>
+            </select>
                 <select name="software">
                 <option>请选择服务</option>
 		{% for soft in softs %}

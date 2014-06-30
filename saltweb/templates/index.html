@@ -76,7 +76,14 @@
                  <li><a href="{% url 'sysuser' %}">系统用户管理</a></li>
               <li><a href="{% url 'install' %}">自动化部署</a></li>
               <li><a href="{% url 'optlog' %}">操作记录</a></li>
-              <li><a href="{% url 'groups' %}">分组管理</a></li>
+              <li class="dropdown">
+                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">分组管理<b class="caret"></b></a>
+                 <ul class="dropdown-menu">
+                 <li><a href="{% url 'hostgroup' %}">主机分组</a></li>
+                 <li class="divider"></li>
+                         <li><a href="{% url 'contactgroup' %}">联系人分组</a></li>
+                 </ul>
+                 </li>
               <li class="dropdown">
                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">文件管理<b class="caret"></b></a>
                  <ul class="dropdown-menu">
@@ -145,7 +152,14 @@
                  <li><a href="{% url 'sysuser' %}">系统用户管理</a></li>
               <li><a href="{% url 'install' %}">自动化部署</a></li>
               <li><a href="{% url 'optlog' %}">操作记录</a></li>
-              <li><a href="{% url 'groups' %}">分组管理</a></li>
+              <li class="dropdown">
+                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">分组管理<b class="caret"></b></a>
+                 <ul class="dropdown-menu">
+                 <li><a href="{% url 'hostgroup' %}">主机分组</a></li>
+                 <li class="divider"></li>
+                         <li><a href="{% url 'contactgroup' %}">联系人分组</a></li>
+                 </ul>
+                 </li>
               <li class="dropdown">
                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">文件管理<b class="caret"></b></a>
                  <ul class="dropdown-menu">

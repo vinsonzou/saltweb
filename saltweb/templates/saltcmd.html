@@ -8,21 +8,19 @@
 <div class='row'>
     <div class='span10'>
             <form class="form-inline" id="form-execute" action="" method="post" style="margin-bottom:0;">
-            <input type="text" class="input-small" value="*" name="saltid">
-            <select name="type" class="input-small">
-                <option>选择类型</option>
+            匹配主机:<input type="text" class="input-small" value="*" name="saltid">
+            类型:<select name="type" class="input-small">
                 <option>glob</option>
                 <option>nodegroup</option>
                 <option>range</option>
                 <option>grain</option>
                 <option>pillar</option>
             </select>
-		    <select name="fun" class="input-small">
-                <option>选择函数</option>
+		    函数:<select name="fun" class="input-small">
                 <option>cmd.run</option>
                 <option>state.sls</option>
             </select>
-                <input type="text" class="input-max" name='cmd'>
+                命令:<input type="text" class="input-max" name='cmd'>
                 <button type="submit" class="btn" id="execute">Enter</button>
            </form>
     </div>

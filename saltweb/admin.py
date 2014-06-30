@@ -46,6 +46,9 @@ class MinionslogAdmin(admin.ModelAdmin):
 class GroupAdmin(admin.ModelAdmin):
     list_display = ('name','hosts','contact','nowtime')
     ordering = ('-id',)
+class ContactsAdmin(admin.ModelAdmin):
+    list_display = ('name','contact','nowtime')
+    ordering = ('-id',)
 
 #admin.site.register(Pro_type)
 admin.site.register(Users,UsersAdmin)
@@ -65,3 +68,4 @@ admin.site.register(Deploylog,DeploylogAdmin)
 admin.site.register(Alarm,AlarmAdmin)
 admin.site.register(Minionslog,MinionslogAdmin)
 admin.site.register(Group,GroupAdmin)
+admin.site.register(Contacts,ContactsAdmin)

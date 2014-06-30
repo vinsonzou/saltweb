@@ -8,11 +8,17 @@
 说明：如果执行结果失败可能原因是创建的用户存在<br>
 <form action="" method="post">
 匹配主机:<input type="text" class="input-small" name='saltid' value="*" placeholder="saltid">
+            类型:<select name="type" class="input-small">
+                <option>glob</option>
+                <option>nodegroup</option>
+                <option>range</option>
+                <option>grain</option>
+                <option>pillar</option>
+            </select>
 新建用户名:<input type="text" class="input-small" name='username' placeholder="username">
 系统密码:<input type="password" class="input-small" name='passwd' placeholder="passwd">
 确认密码:<input type="password" class="input-small" name='passwd1' placeholder="passwd">
-<select name="usertype">
-<option>选择用户类型</option>
+用户类型:<select name="usertype" class="input-small">
 <option value="1">普通用户</option>
 <option value="2">SA用户(sudo权限)</option>
 </select>
@@ -23,6 +29,13 @@
 说明：如果执行结果失败可能的原因是该用户在登录状态或者用户不存在<br>
 <form action="" method="post"> 
 匹配主机:<input type="text" class="input-small" name='saltid' value="*" placeholder="saltid">
+            类型:<select name="type" class="input-small">
+                <option>glob</option>
+                <option>nodegroup</option>
+                <option>range</option>
+                <option>grain</option>
+                <option>pillar</option>
+            </select>
 用户名:<input type="text" class="input-small" name='username' placeholder="username">
 <input type="submit" name='deluser' value="执行">
 </form>
@@ -31,6 +44,13 @@
 说明：如果执行结果失败可能的原因是该用户不存在<br>
 <form action="" method="post">
 匹配主机:<input type="text" class="input-small" name='saltid' value="*" placeholder="saltid">
+            类型:<select name="type" class="input-small">
+                <option>glob</option>
+                <option>nodegroup</option>
+                <option>range</option>
+                <option>grain</option>
+                <option>pillar</option>
+            </select>
 用户名:<input type="text" class="input-small" name='username' placeholder="username">
 新密码:<input type="password" class="input-small" name='passwd' placeholder="passwd">
 确认密码:<input type="password" class="input-small" name='passwd1' placeholder="passwd">
