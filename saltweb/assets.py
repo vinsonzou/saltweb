@@ -31,14 +31,14 @@ if newlist:
             #ip = [i for i in grains[saltid]['ipv4'] if i.startswith(comm.network_list)][0]
             Hosts.objects.filter(saltid=saltid).update(cpu=cpu,cpunum=cpunum,mem=mem,hostname=hostname,os=os)
             minions = [row['saltid'] for row in Hosts.objects.values('saltid')]
-            vmrets = c.cmd(saltid,'cmd.run',['ls /dev/*vda'],timeout=5) 
+            vmrets = c.cmd(saltid,'cmd.run',['ls /dev/*vda'],timeout=comm.salttimeout) 
             if 'No such file or directory' in vmrets[saltid]:
                 modelcmd = "dmidecode | grep 'Product Name: '|head -1|awk -F\: '{print $2}'|awk '{print $1,$2,$3}'"
-                modelret = c.cmd(saltid,'cmd.run',[modelcmd],timeout=5)
+                modelret = c.cmd(saltid,'cmd.run',[modelcmd],timeout=comm.salttimeout)
                 sncmd = "dmidecode -s system-serial-number"
-                snret = c.cmd(saltid,'cmd.run',[sncmd],timeout=5)
+                snret = c.cmd(saltid,'cmd.run',[sncmd],timeout=comm.salttimeout)
                 diskcmd = "fdisk -l 2>/dev/null|egrep '^Disk /dev/'|awk '{print $3,$4}'"
-                diskret = c.cmd(saltid,'cmd.run',[diskcmd],timeout=5)
+                diskret = c.cmd(saltid,'cmd.run',[diskcmd],timeout=comm.salttimeout)
                 nowtime = time.strftime("%Y-%m-%d %H:%M:%S")
                 Hosts.objects.filter(saltid=saltid).update(model=modelret[saltid],sn=snret[saltid],disk=diskret[saltid],host_type='实体机',nowtime=nowtime)
 
@@ -56,7 +56,7 @@ for saltid,grain in grains.items():
         if ip != ret.ip:chage['ip']='%s > %s' % (ret.ip,ip) 
         if os != ret.os:chage['os']='%s > %s' % (ret.os,os) 
         if cpu != ret.cpu:chage['cpu']='%s > %s' % (ret.cpu,cpu)
-        if int(cpunum) != int(ret.cpunum):chage['cpunum']='%s > %s' % (ret.cpunum,cpunum)
+        if cpunum != int(ret.cpunum):chage['cpunum']='%s > %s' % (ret.cpunum,cpunum)
         if mem != int(ret.mem):chage['mem']='%s > %s' % (ret.mem,mem)
         if hostname != ret.hostname:chage['hostname']='%s > %s' % (ret.hostname,hostname)
         if chage:
@@ -72,16 +72,16 @@ for saltid,grain in grains.items():
     #        Hosts.objects.filter(ip=ip).delete()
     #        Monitor.objects.filter(ip=ip).delete()
     #    Hosts.objects.create(saltid=saltid,cpu=cpu,cpunum=cpunum,mem=mem,hostname=hostname,os=os,ip=ip)
-vmrets = c.cmd('*','cmd.run',['ls /dev/*vda'],timeout=5)    #xen是/dev/xvda，kvm是/dev/vda
+vmrets = c.cmd('*','cmd.run',['ls /dev/*vda'],timeout=comm.salttimeout)    #xen是/dev/xvda，kvm是/dev/vda
 for saltid,vmret in vmrets.items():
     if 'No such file or directory' in vmret:
         chage = {}
         modelcmd = "dmidecode | grep 'Product Name: '|head -1|awk -F\: '{print $2}'|awk '{print $1,$2,$3}'"
-        modelret = c.cmd(saltid,'cmd.run',[modelcmd],timeout=5)
+        modelret = c.cmd(saltid,'cmd.run',[modelcmd],timeout=comm.salttimeout)
         sncmd = "dmidecode -s system-serial-number"
-        snret = c.cmd(saltid,'cmd.run',[sncmd],timeout=5)
+        snret = c.cmd(saltid,'cmd.run',[sncmd],timeout=comm.salttimeout)
         diskcmd = "fdisk -l 2>/dev/null|egrep '^Disk /dev/'|awk '{print $3,$4}'"
-        diskret = c.cmd(saltid,'cmd.run',[diskcmd],timeout=5)
+        diskret = c.cmd(saltid,'cmd.run',[diskcmd],timeout=comm.salttimeout)
         ret = Hosts.objects.get(saltid=saltid) 
         if modelret[saltid] != ret.model:chage['model']='%s > %s' % (ret.model,modelret[saltid])
         if snret[saltid] != ret.sn:chage['sn']='%s > %s' % (ret.sn,snret[saltid])

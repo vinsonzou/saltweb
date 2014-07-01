@@ -36,6 +36,7 @@
     </div>
 </div>
 </form>
+{% if msg %}<font color='red'>{{ msg }}</font><br>{% endif %}
 <br>
 <div id="result" onchange="$('#progress_stop').hide()" style="height:400px;#c3c3c3;background-color:black;color:white;overflow-y:auto;" class="well">
 {% if execerr %}

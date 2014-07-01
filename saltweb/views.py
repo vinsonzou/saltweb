@@ -151,68 +151,75 @@ def minions(request):
     msgnum = Msg.objects.filter(isread=0,msgto=user).count()
     saltids = [row['saltid'] for row in Hosts.objects.order_by("saltid").values('saltid')]
     c = salt.client.LocalClient()
+    minions = sorted(os.listdir('/etc/salt/pki/master/minions'))
     if os.system("/etc/init.d/salt-master status >/dev/null") != 0:
         msg = "salt-master服务未启动"
-    elif request.method != 'POST':
+    #elif request.method != 'POST':
         #minions = sorted(c.run_job('*','cmd.run',['echo'],expr_form='glob')['minions'])
-        minions = sorted(os.listdir('/etc/salt/pki/master/minions'))
+    #    minions = sorted(os.listdir('/etc/salt/pki/master/minions'))
     elif request.method == 'POST':
         port = sshdefaultport
         username = request.POST.get('username','')
         passwd = request.POST.get('passwd','')
         if request.POST.has_key("madd"):
             hosts = request.POST.get('hosts','')
-            if '-' in hosts and ',' not in hosts:
-                start = hosts.split('-')[0].split('.')[3]
-                end = hosts.split('-')[1]
-                ip = hosts.split('-')[0].split('.')[ : 3]
-                ip3 = '.'.join(ip)
-                for ip1 in xrange(int(start), int(end) + 1):
-                    host = ip3 + '.' + str(ip1)
-                    cmd = cmdminion(host)
-                    def sshfc(host):
-                        Minionslog.objects.create(name='add_minion',ip=host)
-                        id = Minionslog.objects.order_by('-id')[0].id
-                        ret = ssh(host,port,username,passwd,cmd)
-                        if "Success" in ret[host]:
-                            saltid = ret[host].split()[1]
-                            if saltid not in saltids: Hosts.objects.create(saltid=saltid,ip=host,saltstatus='False')
-                        endtime = time.strftime("%Y-%m-%d %H:%M:%S")
-                        Minionslog.objects.filter(id=id).update(status='已完成',deployret=ret[host],endtime=endtime)
-                    threading.Thread(target=sshfc,args=(host,)).start()
-                    time.sleep(1)
-                    
-            if ',' in hosts and '-' not in hosts:
-                hosts = hosts.split(',')
-                for host in hosts:
-                    cmd = cmdminion(host)
-                    def sshfc(host):
-                        Minionslog.objects.create(name='add_minion',ip=host)
-                        id = Minionslog.objects.order_by('-id')[0].id
-                        ret = ssh(host,port,username,passwd,cmd)
-                        if "Success" in ret[host]:
-                            saltid = ret[host].split()[1]
-                            if saltid not in saltids: Hosts.objects.create(saltid=saltid,ip=host,saltstatus='False')
-                        endtime = time.strftime("%Y-%m-%d %H:%M:%S")
-                        Minionslog.objects.filter(id=id).update(status='已完成',deployret=ret[host],endtime=endtime)
-                    threading.Thread(target=sshfc,args=(host,)).start()
-                    time.sleep(1)
-            if ',' in hosts and '-' in hosts:
-                msg = "iplist填写不符合，请参考说明重新填写，谢谢！"
+            if hosts and username and passwd and username != 'root':
+                if '-' in hosts and ',' not in hosts:
+                    start = hosts.split('-')[0].split('.')[3]
+                    end = hosts.split('-')[1]
+                    ip = hosts.split('-')[0].split('.')[ : 3]
+                    ip3 = '.'.join(ip)
+                    for ip1 in xrange(int(start), int(end) + 1):
+                        host = ip3 + '.' + str(ip1)
+                        cmd = cmdminion(host)
+                        def sshfc(host):
+                            Minionslog.objects.create(name='add_minion',ip=host)
+                            id = Minionslog.objects.order_by('-id')[0].id
+                            ret = ssh(host,port,username,passwd,cmd)
+                            if "Success" in ret[host]:
+                                saltid = ret[host].split()[1]
+                                if saltid not in saltids: Hosts.objects.create(saltid=saltid,ip=host,saltstatus='False')
+                            endtime = time.strftime("%Y-%m-%d %H:%M:%S")
+                            Minionslog.objects.filter(id=id).update(status='已完成',deployret=ret[host],endtime=endtime)
+                        threading.Thread(target=sshfc,args=(host,)).start()
+                        time.sleep(1)
+                        
+                if ',' in hosts and '-' not in hosts:
+                    hosts = hosts.split(',')
+                    for host in hosts:
+                        cmd = cmdminion(host)
+                        def sshfc(host):
+                            Minionslog.objects.create(name='add_minion',ip=host)
+                            id = Minionslog.objects.order_by('-id')[0].id
+                            ret = ssh(host,port,username,passwd,cmd)
+                            if "Success" in ret[host]:
+                                saltid = ret[host].split()[1]
+                                if saltid not in saltids: Hosts.objects.create(saltid=saltid,ip=host,saltstatus='False')
+                            endtime = time.strftime("%Y-%m-%d %H:%M:%S")
+                            Minionslog.objects.filter(id=id).update(status='已完成',deployret=ret[host],endtime=endtime)
+                        threading.Thread(target=sshfc,args=(host,)).start()
+                        time.sleep(1)
+                if ',' in hosts and '-' in hosts:
+                    msg = "iplist填写不符合，请参考说明重新填写，谢谢！"
+            else:
+                msg = 'iplist、用户名或密码不正确，请重新填写！'
         if request.POST.has_key("add"):
             host = request.POST.get('host','')
             cmd = cmdminion(host)
-            def sshfc(host):
-                Minionslog.objects.create(name='add_minion',ip=host)
-                id = Minionslog.objects.order_by('-id')[0].id
-                ret = ssh(host,port,username,passwd,cmd)
-                if "Success" in ret[host]:
-                    saltid = ret[host].split()[1]
-                    if saltid not in saltids: Hosts.objects.create(saltid=saltid,ip=host,saltstatus='False')
-                endtime = time.strftime("%Y-%m-%d %H:%M:%S")
-                Minionslog.objects.filter(id=id).update(status='已完成',deployret=ret[host],endtime=endtime)
-            threading.Thread(target=sshfc,args=(host,)).start()
-            time.sleep(1)   
+            if host and username and passwd and username != 'root':
+                def sshfc(host):
+                    Minionslog.objects.create(name='add_minion',ip=host)
+                    id = Minionslog.objects.order_by('-id')[0].id
+                    ret = ssh(host,port,username,passwd,cmd)
+                    if "Success" in ret[host]:
+                        saltid = ret[host].split()[1]
+                        if saltid not in saltids: Hosts.objects.create(saltid=saltid,ip=host,saltstatus='False')
+                    endtime = time.strftime("%Y-%m-%d %H:%M:%S")
+                    Minionslog.objects.filter(id=id).update(status='已完成',deployret=ret[host],endtime=endtime)
+                threading.Thread(target=sshfc,args=(host,)).start()
+                time.sleep(1)   
+            else:
+                msg = 'ip地址、用户名或密码不正确，请重新填写！'
         if request.POST.has_key("del"):
             saltid = request.POST.get('saltid','') 
             Minionslog.objects.create(name='del_minion',saltid=saltid)
@@ -221,7 +228,7 @@ def minions(request):
                 cmd = 'sed -i "s/^master/#master/g" /etc/salt/minion'
                 cmd += '&& /etc/init.d/salt-minion stop >/dev/null'
                 cmd += "&& echo 'Success'"
-                ret = c.cmd("*",'cmd.run',[cmd],timeout=5)
+                ret = c.cmd("*",'cmd.run',[cmd],timeout=salttimeout)
                 os.system('salt-key -D -y' )
                 Hosts.objects.all().delete()
                 endtime = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -236,7 +243,7 @@ def minions(request):
             cmd = 'sed -i "s/^master/#master/g" /etc/salt/minion'
             cmd += '&& /etc/init.d/salt-minion stop >/dev/null'
             cmd += "&& echo 'Success'"
-            ret = c.cmd(saltid,'cmd.run',[cmd],timeout=5)
+            ret = c.cmd(saltid,'cmd.run',[cmd],timeout=salttimeout)
             if ret:
                 ret = 'Success'
                 saltids = [row['saltid'] for row in Hosts.objects.order_by("saltid").values('saltid')]
@@ -322,19 +329,22 @@ def saltcmd(request):
         fun = request.POST.get('fun','')
         cmd = request.POST.get('cmd','')
         type = request.POST.get('type','')
-        minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)['minions']
-        #minions = os.listdir('/etc/salt/pki/master/minions')
-        dangercmds = [i for i in dangercmdlist if i in cmd]
-        if not dangercmds:
-            ret1 = c.cmd(saltid,fun,[cmd],expr_form=type,timeout=99)
-            execerr = list(set(minions).difference(set(ret1.keys())))
-            total = len(minions)
-            errnum = len(execerr)
-            execerr = 'total:%d errnum:%d errret:%s' % (total,errnum,','.join(execerr))
-            if len(execerr) > 950: execerr = execerr[:950]+'...'
-            Log.objects.create(user=str(user),ip='-',saltid=saltid,logtype=fun,cmd=cmd,execerr=execerr)
+        minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)
+        if minions:
+            minions = minions['minions']
+            dangercmds = [i for i in dangercmdlist if i in cmd]
+            if not dangercmds:
+                ret1 = c.cmd(saltid,fun,[cmd],expr_form=type,timeout=salttimeout)
+                execerr = list(set(minions).difference(set(ret1.keys())))
+                total = len(minions)
+                errnum = len(execerr)
+                execerr = 'total:%d errnum:%d errret:%s' % (total,errnum,','.join(execerr))
+                if len(execerr) > 950: execerr = execerr[:950]+'...'
+                Log.objects.create(user=str(user),ip='-',saltid=saltid,logtype=fun,cmd=cmd,execerr=execerr)
+            else:
+                msg = '包含危险命令%s关键字，禁止执行' % str(dangercmdlist)    
         else:
-            msg = '包含危险命令%s关键字，禁止执行' % str(dangercmdlist)    
+            msg = '匹配主机失败，请重新输入！'
     return render_to_response('saltcmd.html',locals())
 
 @login_required
@@ -349,34 +359,33 @@ def sshcmd(request):
     ret1 = {}
     if request.method == 'POST':
         host = request.POST.get('host','')
-        if host == 'all':
-            pool = multiprocessing.Pool(processes=thread_num)
-            result = []
-            for ip in ips:
-                port = sshdefaultport 
-                username = request.POST.get('username','')
-                passwd = Users.objects.get(username=username).passwd
-                cmd = request.POST.get('cmd','')
-                result.append(pool.apply_async(ssh, (ip,int(port),username,passwd,cmd)))
-            pool.close()
-            ret1 = [i.get() for i in result]
-            total = len(ret1)
-            execerr = [','.join(i.keys()) for i in ret1 if ','.join(i.values()).startswith('Error:')]
-            errnum = len(execerr)
-            execerr = 'total:%d errnum:%d errret:%s' % (total,errnum,','.join(execerr))
-            if len(execerr) > 950: execerr = execerr[:950]+'...'
-            Log.objects.create(user=str(user),ip=host,saltid='-',logtype='ssh',cmd=cmd,execerr=execerr)
-        elif host.startswith(network_list):
-            port = sshdefaultport
-            username = request.POST.get('username','')
+        port = sshdefaultport 
+        username = request.POST.get('username','')
+        cmd = request.POST.get('cmd','')
+        if host and username in users and cmd:
             passwd = Users.objects.get(username=username).passwd
-            cmd = request.POST.get('cmd','')
-            ret1 = [ssh(host,int(port),username,passwd,cmd)]
-            execerr = [','.join(i.keys()) for i in ret1 if ','.join(i.values()).startswith('Error:')]
-            errnum = len(execerr)
-            execerr = 'total:1 errnum:%d errret:%s' % (errnum,','.join(execerr))
-            if len(execerr) > 950: execerr = execerr[:950]+'...'
-            Log.objects.create(user=str(user),ip=host,saltid='-',logtype='ssh',cmd=cmd,execerr=execerr)
+            if host == 'all':
+                pool = multiprocessing.Pool(processes=thread_num)
+                result = []
+                for ip in ips:
+                    result.append(pool.apply_async(ssh, (ip,int(port),username,passwd,cmd)))
+                pool.close()
+                ret1 = [i.get() for i in result]
+                total = len(ret1)
+                execerr = [','.join(i.keys()) for i in ret1 if ','.join(i.values()).startswith('Error:')]
+                errnum = len(execerr)
+                execerr = 'total:%d errnum:%d errret:%s' % (total,errnum,','.join(execerr))
+                if len(execerr) > 950: execerr = execerr[:950]+'...'
+                Log.objects.create(user=str(user),ip=host,saltid='-',logtype='ssh',cmd=cmd,execerr=execerr)
+            elif host.startswith(network_list):
+                ret1 = [ssh(host,int(port),username,passwd,cmd)]
+                execerr = [','.join(i.keys()) for i in ret1 if ','.join(i.values()).startswith('Error:')]
+                errnum = len(execerr)
+                execerr = 'total:1 errnum:%d errret:%s' % (errnum,','.join(execerr))
+                if len(execerr) > 950: execerr = execerr[:950]+'...'
+                Log.objects.create(user=str(user),ip=host,saltid='-',logtype='ssh',cmd=cmd,execerr=execerr)
+        else:
+            msg = '表单各项不能为空，请重新输入！'
     return render_to_response('cmd.html',locals())
 
 @login_required
@@ -459,20 +468,23 @@ def syncfile(request):
         saltid = request.POST.get('saltid','')
         type = request.POST.get('type','')
         cmd = 'wget %s%s -O %s >/dev/null 2>&1 && echo " sync_ok !!!"' % (download_url,filename,remote)
-        c = salt.client.LocalClient()
-        rets = c.cmd(saltid,'cmd.run',[cmd],expr_form=type,timeout=5)
-        minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)['minions']
-        #minions = os.listdir('/etc/salt/pki/master/minions')
-        retok = [ret[0] for ret in rets.items() if "sync_ok" in ret[1]]
-        execerr = list(set(minions).difference(set(retok)))
-        total = len(minions)
-        errnum = len(execerr)
-        execerr = 'total:%d errnum:%d errret:%s' % (total,errnum,','.join(execerr))
-        if len(execerr) > 950: execerr = execerr[:950]+'...'
-        #if len(str(ret1)) > 950:
-        #    for k,v in ret1.items():
-        #        if v == 'saltexec_ok':del ret1[k]
-        Log.objects.create(user=str(user),ip='-',saltid=saltid,logtype='putfile',cmd=cmd,execerr=execerr)
+        if filename in files and saltid and remote:
+            c = salt.client.LocalClient()
+            minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)
+            if minions:
+                minions = minions['minions']
+                rets = c.cmd(saltid,'cmd.run',[cmd],expr_form=type,timeout=salttimeout)
+                retok = [ret[0] for ret in rets.items() if "sync_ok" in ret[1]]
+                execerr = list(set(minions).difference(set(retok)))
+                total = len(minions)
+                errnum = len(execerr)
+                execerr = 'total:%d errnum:%d errret:%s' % (total,errnum,','.join(execerr))
+                if len(execerr) > 950: execerr = execerr[:950]+'...'
+                Log.objects.create(user=str(user),ip='-',saltid=saltid,logtype='putfile',cmd=cmd,execerr=execerr)
+            else:
+                msg = '匹配主机失败，请重新输入！'
+        else:
+            msg = '表单各项不能为空，请重新输入！'
     return render_to_response('syncfile.html', locals())
 
 @login_required
@@ -495,10 +507,35 @@ def sysuser(request):
                 if usertype == '2':
                     cmd = '%s &&chattr -i /etc/sudoers && echo "%s  ALL=(ALL)  NOPASSWD: ALL">>/etc/sudoers && chattr +i /etc/sudoers' % (cmd,username)
                 c = salt.client.LocalClient()
-                minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)['minions']
-                print minions
-                #minions = os.listdir('/etc/salt/pki/master/minions')
-                ret1 = c.cmd(saltid,'cmd.run',[cmd],expr_form=type,timeout=5)
+                minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)
+                if minions:
+                    minions = minions['minions']
+                    ret1 = c.cmd(saltid,'cmd.run',[cmd],expr_form=type,timeout=salttimeout)
+                    retok = [ret[0] for ret in ret1.items() if "successfully" in ret[1]]
+                    execerr = list(set(minions).difference(set(retok)))
+                    total = len(minions)
+                    errnum = len(execerr)
+                    execerr = 'total:%d errnum:%d errret:%s' % (total,errnum,','.join(execerr))
+                    if len(execerr) > 950: execerr = execerr[:950]+'...'
+                    if username in users:
+                        Users.objects.filter(username=username).update(passwd=passwd)
+                    else:
+                        Users.objects.create(username=username,passwd=passwd)
+                    Log.objects.create(user=str(user),ip='-',saltid=saltid,logtype='adduser',cmd=cmd,execerr=execerr)
+                else:
+                    msg = '匹配主机失败，请重新输入！'
+            else:
+                msg = "两次密码不一致!"
+        if request.POST.has_key("deluser"):
+            saltid = request.POST.get('saltid','')
+            type = request.POST.get('type','')
+            username = request.POST.get('username','') 
+            c = salt.client.LocalClient()
+            minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)
+            if minions:
+                minions = minions['minions']
+                cmd = "userdel %s >/dev/null 2>&1 ;echo 'successfully'" % username
+                ret1 = c.cmd(saltid,'cmd.run',[cmd],expr_form=type,timeout=salttimeout)      
                 retok = [ret[0] for ret in ret1.items() if "successfully" in ret[1]]
                 execerr = list(set(minions).difference(set(retok)))
                 total = len(minions)
@@ -506,30 +543,10 @@ def sysuser(request):
                 execerr = 'total:%d errnum:%d errret:%s' % (total,errnum,','.join(execerr))
                 if len(execerr) > 950: execerr = execerr[:950]+'...'
                 if username in users:
-                    Users.objects.filter(username=username).update(passwd=passwd)
-                else:
-                    Users.objects.create(username=username,passwd=passwd)
-                Log.objects.create(user=str(user),ip='-',saltid=saltid,logtype='adduser',cmd=cmd,execerr=execerr)
+                    Users.objects.filter(username=username).delete()
+                Log.objects.create(user=str(user),ip='-',saltid=saltid,logtype='deluser',cmd=cmd,execerr=execerr)
             else:
-                msg = "两次密码不一致"
-        if request.POST.has_key("deluser"):
-            saltid = request.POST.get('saltid','')
-            type = request.POST.get('type','')
-            username = request.POST.get('username','') 
-            c = salt.client.LocalClient()
-            minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)['minions'] 
-            #minions = os.listdir('/etc/salt/pki/master/minions')
-            cmd = "userdel %s >/dev/null 2>&1 ;echo 'successfully'" % username
-            ret1 = c.cmd(saltid,'cmd.run',[cmd],expr_form=type,timeout=5)      
-            retok = [ret[0] for ret in ret1.items() if "successfully" in ret[1]]
-            execerr = list(set(minions).difference(set(retok)))
-            total = len(minions)
-            errnum = len(execerr)
-            execerr = 'total:%d errnum:%d errret:%s' % (total,errnum,','.join(execerr))
-            if len(execerr) > 950: execerr = execerr[:950]+'...'
-            if username in users:
-                Users.objects.filter(username=username).delete()
-            Log.objects.create(user=str(user),ip='-',saltid=saltid,logtype='deluser',cmd=cmd,execerr=execerr)
+                msg = '匹配主机失败，请重新输入！'
         if request.POST.has_key("chpasswd"):
             saltid = request.POST.get('saltid','')
             type = request.POST.get('type','')
@@ -539,20 +556,23 @@ def sysuser(request):
             cmd = "echo %s|passwd --stdin %s" % (passwd,username)
             if passwd == passwd1:
                 c = salt.client.LocalClient()
-                minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)['minions']
-                #minions = os.listdir('/etc/salt/pki/master/minions')
-                ret1 = c.cmd(saltid,'cmd.run',[cmd],expr_form=type,timeout=5)
-                retok = [ret[0] for ret in ret1.items() if "successfully" in ret[1]]
-                execerr = list(set(minions).difference(set(retok)))
-                total = len(minions)
-                errnum = len(execerr)
-                execerr = 'total:%d errnum:%d errret:%s' % (total,errnum,','.join(execerr))
-                if len(execerr) > 950: execerr = execerr[:950]+'...'
-                if username in users:
-                    Users.objects.filter(username=username).update(passwd=passwd)
+                minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)
+                if minions:
+                    minions = minions['minions']
+                    ret1 = c.cmd(saltid,'cmd.run',[cmd],expr_form=type,timeout=salttimeout)
+                    retok = [ret[0] for ret in ret1.items() if "successfully" in ret[1]]
+                    execerr = list(set(minions).difference(set(retok)))
+                    total = len(minions)
+                    errnum = len(execerr)
+                    execerr = 'total:%d errnum:%d errret:%s' % (total,errnum,','.join(execerr))
+                    if len(execerr) > 950: execerr = execerr[:950]+'...'
+                    if username in users:
+                        Users.objects.filter(username=username).update(passwd=passwd)
+                    else:
+                        Users.objects.create(username=username,passwd=passwd)
+                    Log.objects.create(user=str(user),ip='-',saltid=saltid,logtype='chpasswd',cmd=cmd,execerr=execerr)
                 else:
-                    Users.objects.create(username=username,passwd=passwd)
-                Log.objects.create(user=str(user),ip='-',saltid=saltid,logtype='chpasswd',cmd=cmd,execerr=execerr)
+                    msg = '匹配主机失败，请重新输入！'
             else:
                 msg = "两次密码不一致"
     return render_to_response('sysuser.html', locals())
@@ -570,25 +590,32 @@ def install(request):
             saltid = request.POST.get('saltid','')
             type = request.POST.get('type','')
             software = request.POST.get('software','')
-            cmd = "wget %s/install/%s -O /tmp/%s >/dev/null 2>&1 && cd /tmp && sh %s >/dev/null 2>&1 && echo 'Install Success !!!'" % (download_url,software,software,software)
-            def execcmd():
+            if software in softs:
+                cmd = "wget %s/install/%s -O /tmp/%s >/dev/null 2>&1 && cd /tmp && sh %s >/dev/null 2>&1 && echo 'Install Success !!!'" % (download_url,software,software,software)
                 c = salt.client.LocalClient()
-                Deploylog.objects.create(name=software,saltid=saltid)
-                id = Deploylog.objects.order_by('-id')[0].id
-                rets = c.cmd(saltid,'cmd.run',[cmd],expr_form=type,timeout=999)
-                minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)['minions']
-                #minions = os.listdir('/etc/salt/pki/master/minions')
-                retok = [ret[0] for ret in rets.items() if "Install Success" in ret[1]]
-                execerr = list(set(minions).difference(set(retok)))
-                total = len(minions)
-                errnum = len(execerr)
-                execerr = 'total:%d errnum:%d errret:%s' % (total,errnum,','.join(execerr))
-                if len(execerr) > 950: execerr = execerr[:950]+'...'
-                Log.objects.create(user=str(user),ip='-',saltid=saltid,logtype='install',cmd=cmd,execerr=execerr)
-                endtime = time.strftime("%Y-%m-%d %H:%M:%S")
-                Deploylog.objects.filter(id=id).update(status='已完成',deployret=execerr,endtime=endtime)
-            threading.Thread(target=execcmd).start()
-            time.sleep(1)
+                minions = c.run_job(saltid,'cmd.run',['echo'],expr_form=type)
+                if minions: 
+                    minions = minions['minions']
+                    def execcmd():
+                        c = salt.client.LocalClient()
+                        Deploylog.objects.create(name=software,saltid=saltid)
+                        id = Deploylog.objects.order_by('-id')[0].id
+                        rets = c.cmd(saltid,'cmd.run',[cmd],expr_form=type,timeout=salttimeout)
+                        retok = [ret[0] for ret in rets.items() if "Install Success" in ret[1]]
+                        execerr = list(set(minions).difference(set(retok)))
+                        total = len(minions)
+                        errnum = len(execerr)
+                        execerr = 'total:%d errnum:%d errret:%s' % (total,errnum,','.join(execerr))
+                        if len(execerr) > 950: execerr = execerr[:950]+'...'
+                        Log.objects.create(user=str(user),ip='-',saltid=saltid,logtype='install',cmd=cmd,execerr=execerr)
+                        endtime = time.strftime("%Y-%m-%d %H:%M:%S")
+                        Deploylog.objects.filter(id=id).update(status='已完成',deployret=execerr,endtime=endtime)
+                    threading.Thread(target=execcmd).start()
+                    time.sleep(1)
+                else:
+                    msg = '匹配主机失败，请重新输入！'
+            else:
+                msg = '请选择服务！'
     deployrets = Deploylog.objects.order_by('-id')[0:7]
     return render_to_response('install.html',locals())
 
@@ -709,7 +736,6 @@ def hostgroup(request):
     msgnum = Msg.objects.filter(isread=0,msgto=user).count()
     name = request.GET.get('name',)
     hosts = request.GET.get('hosts',)
-    contact = request.GET.get('contact',)
     edit = request.GET.get('edit',)
     delete = request.GET.get('delete',)
     if delete:
@@ -718,33 +744,28 @@ def hostgroup(request):
         return HttpResponseRedirect('/salt/hostgroup/')
     if edit:
         if request.method == 'POST':
-            name = request.POST['name']
             hosts = request.POST['hosts']
-            contact = request.POST['contact']
-            os.popen('sed -i "s/%s:.*/%s: %s/" %s' % (name,name,hosts,groupsconf))
-            nowtime = time.strftime("%Y-%m-%d %H:%M:%S")
-            Group.objects.filter(name=name).update(hosts=hosts,contact=contact,nowtime=nowtime)        
-            return HttpResponseRedirect('/salt/hostgroup/')
-        else:
-            ret = Group.objects.get(name=name)
-            return render_to_response("updatehostgroup.html",locals())
+            if hosts:
+                os.popen('sed -i "s/%s:.*/%s: %s/" %s' % (name,name,hosts,groupsconf))
+                nowtime = time.strftime("%Y-%m-%d %H:%M:%S")
+                Group.objects.filter(name=name).update(hosts=hosts,nowtime=nowtime)        
+                return HttpResponseRedirect('/salt/hostgroup/')
+            else:
+                msg = 'saltid不能为空，请重新输入！'
+        ret = Group.objects.get(name=name)
+        return render_to_response("updatehostgroup.html",locals())
     if request.method == 'POST':
         groupname = request.POST['groupname']
         hosts = request.POST['hosts']
-        contact = request.POST['contact']
-        if request.POST.has_key("add"):
-            if not Group.objects.filter(name=groupname):
-                os.popen('echo "    %s: %s" >> %s' % (groupname,hosts,groupsconf))
-                Group.objects.create(name=groupname,hosts=hosts,contact=contact)
-            else:
-                msg = "组名已经存在"
-        if request.POST.has_key("modf"):
-            if Group.objects.filter(name=groupname):
-                os.popen('sed -i "s/%s:.*/%s: %s/" %s' % (groupname,groupname,hosts,groupsconf))
-                nowtime = time.strftime("%Y-%m-%d %H:%M:%S")
-                Group.objects.filter(name=groupname).update(hosts=hosts,contact=contact,nowtime=nowtime)
-            else:
-                msg = "组名不存在"
+        if groupname and hosts:
+            if request.POST.has_key("add"):
+                if not Group.objects.filter(name=groupname):
+                    os.popen('echo "    %s: %s" >> %s' % (groupname,hosts,groupsconf))
+                    Group.objects.create(name=groupname,hosts=hosts)
+                else:
+                    msg = "组名已经存在"
+        else:
+            msg = '组名或saltid不能为空，请重新输入！'
     rets = Group.objects.all()
     return render_to_response('hostgroup.html',locals())
 
@@ -761,27 +782,25 @@ def contactgroup(request):
         return HttpResponseRedirect('/salt/contactgroup/')
     if edit:
         if request.method == 'POST':
-            name = request.POST['name']
             contact = request.POST['contact']
-            nowtime = time.strftime("%Y-%m-%d %H:%M:%S")
-            Contacts.objects.filter(name=name).update(contact=contact,nowtime=nowtime)        
-            return HttpResponseRedirect('/salt/contactgroup/')
-        else:
-            ret = Contacts.objects.get(name=name)
-            return render_to_response("updatecontactgroup.html",locals())
+            if contact:
+                nowtime = time.strftime("%Y-%m-%d %H:%M:%S")
+                Contacts.objects.filter(name=name).update(contact=contact,nowtime=nowtime)        
+                return HttpResponseRedirect('/salt/contactgroup/')
+            else:
+                msg = '联系人不能为空，请重新输入！'
+        ret = Contacts.objects.get(name=name)
+        return render_to_response("updatecontactgroup.html",locals())
     if request.method == 'POST':
         groupname = request.POST['groupname']
         contact = request.POST['contact']
-        if request.POST.has_key("add"):
-            if not Contacts.objects.filter(name=groupname):
-                Contacts.objects.create(name=groupname,contact=contact)
-            else:
-                msg = "组名已经存在"
-        if request.POST.has_key("modf"):
-            if Contacts.objects.filter(name=groupname):
-                nowtime = time.strftime("%Y-%m-%d %H:%M:%S")
-                Contacts.objects.filter(name=groupname).update(contact=contact,nowtime=nowtime)
-            else:
-                msg = "组名不存在"
+        if groupname and contact:
+            if request.POST.has_key("add"):
+                if not Contacts.objects.filter(name=groupname):
+                    Contacts.objects.create(name=groupname,contact=contact)
+                else:
+                    msg = "组名已经存在"
+        else:
+            msg = '组名或联系人不能为空，请重新输入！'
     rets = Contacts.objects.all()
     return render_to_response('contactgroup.html',locals())

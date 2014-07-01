@@ -68,7 +68,7 @@ try:
             stop_service(servicename)
             service(servicename,startcmd)            
     else:
-        print "Use: stop|start|restart|etatus|restartuwsgi"
+        print "Use: stop|start|restart|status|restartuwsgi"
 except IndexError:
-    print 'No argument detected!\nUse: stop|start|restart|status'
+    print 'No argument detected!\nUse: stop|start|restart|status|restartuwsgi'
 
