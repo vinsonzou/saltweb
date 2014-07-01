@@ -54,6 +54,7 @@ def monitor(request):
     user = request.user
     msgnum = Msg.objects.filter(isread=0,msgto=user).count()
     master_ip = masterip
+    nowtime = Hosts.objects.order_by('-nowtime')[0].nowtime
     master_ips = os.popen("ip a|grep 'inet '|grep -v 127.0.0.1").read()
     if master_ip not in master_ips: master_ip = ''
     masterstatus = Mastermonitor.objects.filter(saltid='saltwebmaster')[0].status
