@@ -45,66 +45,8 @@
     <div class="navbar navbar-fixed-top"> 
       <div class="navbar-inner"> 
         <div class="container-fluid"> 
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> 
-            <span class="icon-bar"></span> 
-            <span class="icon-bar"></span> 
-            <span class="icon-bar"></span> 
-          </a> 
           <a class="brand" href="{% url 'index' %}">Saltweb运维管理平台</a> 
-          <div class="nav-collapse"> 
-            <ul class="nav">
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">资产管理<b class="caret"></b></a> 
-              <ul class="dropdown-menu">
-              <li><a href="{% url 'minions' %}">minion管理</a></li>
-              <li class="divider"></li>
-              <li><a href="{% url 'assets' %}">资产信息表</a></li> 
-              <li class="divider"></li>
-              <li><a href="{% url 'chagelog' %}">资产变更记录表</a></li>
-              </ul>
-            </li>  
-              <li class="dropdown">
-                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">监控<b class="caret"></b></a>
-                 <ul class="dropdown-menu">
-                 <li><a href="{% url 'monitor' %}">主机监控</a></li>
-                 <li class="divider"></li>
-                 <li><a href="{% url 'urlmonitor' %}">页面监控</a></li>
-                 <li class="divider"></li>
-                 <li><a href="{% url 'alarm' %}">监控报警记录</a></li>
-                 </ul>
-                 </li>
-                 <li><a href="{% url 'sysuser' %}">系统用户管理</a></li>
-              <li><a href="{% url 'install' %}">自动化部署</a></li>
-              <li><a href="{% url 'optlog' %}">操作记录</a></li>
-              <li class="dropdown">
-                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">分组管理<b class="caret"></b></a>
-                 <ul class="dropdown-menu">
-                 <li><a href="{% url 'hostgroup' %}">主机分组</a></li>
-                 <li class="divider"></li>
-                         <li><a href="{% url 'contactgroup' %}">联系人分组</a></li>
-                 </ul>
-                 </li>
-              <li class="dropdown">
-                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">文件管理<b class="caret"></b></a>
-                 <ul class="dropdown-menu">
-                 <li><a href="{% url 'upload' %}">上传文件</a></li>
-                 <li class="divider"></li>
-		         <li><a href="{% url 'editfile' %}">编辑文件</a></li>
-                 <li class="divider"></li>
-                 <li><a href="{% url 'syncfile' %}">分发文件</a></li>
-                 </ul>
-                 </li>
-              <li class="dropdown">
-                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">执行命令<b class="caret"></b></a>
-                 <ul class="dropdown-menu">
-                 <li><a href="{% url 'saltcmd' %}">salt方式</a></li>
-                 <li class="divider"></li>
-                 <li><a href="{% url 'sshcmd' %}">ssh方式</a></li>
-                 </ul>
-                 </li>
-              <li><a href="{% url 'todo' %}">开发日志</a></li>
-            </ul> 
-<ul class="nav navbar-nav pull-right">
+        <ul class="nav navbar-nav pull-right">
         <li><a href="#">欢迎 {{user.username}}</a></li>
         <li><a href="{% url 'msg' %}">未读消息(<font color='red'>{{msgnum}}</font>)</a></li>
         <li class="dropdown">
@@ -119,7 +61,6 @@
         </li>
       </ul>
           </div><!--/.nav-collapse --> 
-        </div> 
       </div> 
     </div> 
  

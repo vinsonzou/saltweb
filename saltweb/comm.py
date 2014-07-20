@@ -5,7 +5,7 @@
 #全局常量
 from_mail = 'saltweb@hhr.com'
 interval = 7200 #报警间隔
-masterip = '172.16.1.237'
+masterip = '192.168.5.30'
 network_list = ('172.16','192.168','10.0')
 pagelimit = 8	#分页
 dangercmdlist = ('rm','reboot','init ','shutdown')
@@ -13,13 +13,13 @@ download_url = 'http://%s:8000/' % masterip
 base_dir = '/root/saltweb/'
 script_dir = '%ssaltweb/' % base_dir
 upload_dir = '%supload/' % base_dir
-sshdefaultport = 50718
+sshdefaultport = 9830
 thread_num = 20
 salttimeout = 10
 groupsconf = '/etc/salt/group.conf'
-dbname = 'saltweb'
-dbuser = 'root'
-dbpasswd = '123'
+#dbname = 'saltweb'
+#dbuser = 'root'
+#dbpasswd = '123'
 ####################
 def ssh(ip,port,user,passwd,cmd):
     import paramiko

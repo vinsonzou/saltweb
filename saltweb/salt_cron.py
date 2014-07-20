@@ -7,7 +7,7 @@ import comm
 from apscheduler.scheduler import Scheduler
 sched = Scheduler(daemonic = False)
 def job_function(server):
-    os.system('python %s.py' % server)
+    os.system('python %ssaltweb/%s.py' % (comm.base_dir,server))
 sched.add_interval_job(job_function,hours=1,args=['assets'])
 sched.add_interval_job(job_function,seconds=60,args=['hostping'])
 sched.add_interval_job(job_function,minutes=5,args=['monitor'])

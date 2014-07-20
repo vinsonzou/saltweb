@@ -14,9 +14,8 @@ cd pip-1.5
 python setup.py install
 cd ..
 yum -y install gcc gcc-c++ python-devel
-yum install php-devel mysql mysql-server mysql-devel nginx php-mysql php php-fpm MySQL-python
+yum install php-devel nginx php-mysql php php-fpm
 yum install salt-master salt-minion salt
-yum install rrdtool-devel python-rrdtool
 pip install django
 pip install uwsgi
 pip install apscheduler paramiko
@@ -28,11 +27,7 @@ grep "^default_include: ./*.conf" /etc/salt/master >/dev/null 2>&1|| echo "defau
 cat << EOF > /etc/salt/group.conf
 nodegroups:
 EOF
-/etc/init.d/mysqld start
-chkconfig mysqld on
-mysqladmin -uroot password 123
 #配置saltweb
-mysql -uroot -p123 -e "create database saltweb default charset utf8"
 修改comm.py中的masterip和base_dir等常量信息
 ./manage.py syncdb 
 注：第一次执行syncdb会提示创建超级管理员，该账号为saltweb的登录账号及后台超级管理员
